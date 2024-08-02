@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Module for handling Personal Data
+Module for managing personal data operations.
 """
 from typing import List
 import re
@@ -14,7 +14,7 @@ PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 def filter_datum(fields: List[str], redaction: str,
                  message: str, separator: str) -> str:
-    """ Returns a log message obfuscated """
+    """ Obfuscates sensitive information in a log message."""
     for f in fields:
         message = re.sub(f'{f}=.*?{separator}',
                          f'{f}={redaction}{separator}', message)
@@ -22,7 +22,7 @@ def filter_datum(fields: List[str], redaction: str,
 
 
 def get_logger() -> logging.Logger:
-    """ Returns a Logger Object """
+    """ Creates and returns a logger configured for user data. """
     logger = logging.getLogger("user_data")
     logger.setLevel(logging.INFO)
     logger.propagate = False
@@ -35,7 +35,7 @@ def get_logger() -> logging.Logger:
 
 
 def get_db() -> mysql.connector.connection.MySQLConnection:
-    """ Returns a connector to a MySQL database """
+    """ Establishes and returns a connection to a MySQL database. """
     username = environ.get("PERSONAL_DATA_DB_USERNAME", "root")
     password = environ.get("PERSONAL_DATA_DB_PASSWORD", "")
     host = environ.get("PERSONAL_DATA_DB_HOST", "localhost")
@@ -48,12 +48,10 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     return cnx
 
 
-
-
 def main():
     """
-    Obtain a database connection using get_db and retrieves all rows
-    in the users table and display each row under a filtered format
+    Connects to the database, retrieves all rows from the users table, 
+    and logs each row with sensitive data obfuscated.
     """
     db = get_db()
     cursor = db.cursor()
@@ -71,8 +69,8 @@ def main():
 
 
 class RedactingFormatter(logging.Formatter):
-    """ Redacting Formatter class
-        """
+    """ Formatter class that redacts sensitive information in log messages.
+    """
 
     REDACTION = "***"
     FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
@@ -83,7 +81,7 @@ class RedactingFormatter(logging.Formatter):
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
-        """ Filters values in incoming log records using filter_datum """
+        """ Redacts sensitive data in log records before formatting. """
         record.msg = filter_datum(self.fields, self.REDACTION,
                                   record.getMessage(), self.SEPARATOR)
         return super(RedactingFormatter, self).format(record)
